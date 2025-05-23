@@ -3,6 +3,7 @@ const sharp = require("sharp");
 const { MODEL_PATH, LABEL } = require("../config/modelConfig");
 
 let model;
+const CONFIDENCE_THRESHOLD = 0.8;
 
 const loadModel = async () => {
   if (!model) {
@@ -51,10 +52,18 @@ const predictImageClass = async (imageBuffer) => {
     prediction.dispose();
     tensor.dispose();
 
-    return {
-      predicted: LABEL[maxIdx],
-      confidence,
-    };
+    if (confidence >= CONFIDENCE_THRESHOLD) {
+      return {
+        predicted: LABEL[maxIdx],
+        confidence,
+      };
+    } else {
+      return {
+        predicted: "Unknown",
+        confidence,
+        message: `Confidence (${(confidence * 100).toFixed(2)}%) is below the threshold of ${(CONFIDENCE_THRESHOLD * 100).toFixed(0)}%.`,
+      };
+    }
   } catch (error) {
     console.error("Prediction failed:", error);
     throw new Error("Prediction failed");

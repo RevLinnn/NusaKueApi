@@ -1,9 +1,7 @@
 const path = require('path');
 
-// Lokasi model tfjs
 const MODEL_PATH = `file://${path.resolve(__dirname, '../model/model.json')}`;
 
-// Label kelas sesuai indeks
 const LABEL = [
   "Kue Akar Kelapa", 
   "Kue Ali Agrem", 
