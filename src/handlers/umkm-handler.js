@@ -27,7 +27,6 @@ const getAllUmkm = async (req, h) => {
 };
 
 const getUmkmById = async (req, h) => {
-  // Contoh implementasi, sesuaikan dengan kebutuhan
   const { id } = req.params;
   try {
     const doc = await db.collection('umkm').doc(id).get();
