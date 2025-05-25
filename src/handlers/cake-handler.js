@@ -42,6 +42,16 @@ const addKue = async (req, h) => {
         .code(400);
     }
 
+    const existingKueSnapshot = await db.collection("cakes").where("nama", "==", nama).get();
+
+    if (!existingKueSnapshot.empty) {
+      return h
+        .response({
+          message: `Kue dengan nama '${nama}' sudah ada.`,
+        })
+        .code(409);
+    }
+
     const image = req.payload.image;
     const imageUrl = await uploadImageToFirebase(image, bucket, "cakes");
 

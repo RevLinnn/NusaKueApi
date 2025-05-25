@@ -1,4 +1,4 @@
-const uploadImageToFirebase = async (image, bucket, folder = "cakes") => {
+const uploadImageToFirebase = async (image, bucket, folder ) => {
   if (!image || !image.hapi) return null;
 
   const filename = image.hapi.filename;
