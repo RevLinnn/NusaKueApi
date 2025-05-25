@@ -3,7 +3,7 @@ const sharp = require("sharp");
 const { MODEL_PATH, LABEL } = require("../config/modelConfig");
 
 let model;
-const CONFIDENCE_THRESHOLD = 0.8;
+const CONFIDENCE_THRESHOLD = 0.7;
 
 const loadModel = async () => {
   if (!model) {

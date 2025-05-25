@@ -8,6 +8,9 @@ const init = async () => {
     port: 3000,
     host: 'localhost',
     routes: {
+      cors: {
+        origin: ['*'],
+      },
       payload: {
         maxBytes: 5242880,
         parse: true,
