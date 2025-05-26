@@ -1,4 +1,85 @@
-const db = require("../config/firebase.js");
+const {db, bucket} = require("../config/firebase.js");
+const uploadImageToFirebase = require("../utils/uploadImage.js");
+
+
+const addUmkm = async (req, h) => {
+  try {
+    let { nama, alamat, no_telp, paling_diminati } = req.payload;
+    const image = req.payload.image;
+
+    // Validasi field wajib
+    if (!nama || !alamat || !no_telp || !paling_diminati) {
+      return h
+        .response({ message: "Data tidak lengkap." })
+        .code(400);
+    }
+
+    try {
+      if (typeof paling_diminati === "string") {
+        paling_diminati = JSON.parse(paling_diminati);
+      }
+    } catch (err) {
+      return h
+        .response({
+          message: "Field paling_diminati harus berupa array JSON yang valid.",
+        })
+        .code(400);
+    }
+
+    if (!Array.isArray(paling_diminati)) {
+      return h
+        .response({
+          message: "Field paling_diminati harus berupa array.",
+        })
+        .code(400);
+    }
+
+    const existingUmkmSnapshot = await db
+      .collection("umkm")
+      .where("nama", "==", nama)
+      .get();
+
+    if (!existingUmkmSnapshot.empty) {
+      return h
+        .response({
+          message: `UMKM dengan nama '${nama}' sudah ada.`,
+        })
+        .code(409);
+    }
+
+    let image_url = null;
+    if (image && image.hapi) {
+      image_url = await uploadImageToFirebase(image, bucket, "umkms");
+    }
+
+    const docRef = db.collection("umkm").doc();
+    const docId = docRef.id;
+
+    const newUmkm = {
+      id: docId,
+      nama,
+      alamat,
+      no_telp,
+      paling_diminati,
+      image_url,
+      created_at: new Date().toISOString(),
+    };
+
+    await docRef.set(newUmkm);
+
+    return h
+      .response({
+        message: "UMKM berhasil ditambahkan.",
+        data: newUmkm,
+      })
+      .code(201);
+  } catch (error) {
+    console.error("Error addUmkm:", error);
+    return h
+      .response({ message: "Gagal menambahkan UMKM." })
+      .code(500);
+  }
+};
 
 const getAllUmkm = async (req, h) => {
   try {
@@ -28,16 +109,26 @@ const getAllUmkm = async (req, h) => {
 
 const getUmkmById = async (req, h) => {
   const { id } = req.params;
+
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    return h.response({
+      status: 'gagal',
+      message: 'ID UMKM tidak valid'
+    }).code(400);
+  }
+
   try {
     const doc = await db.collection('umkm').doc(id).get();
 
     if (!doc.exists) {
       return h.response({
+        status: 'gagal',
         message: 'UMKM tidak ditemukan'
       }).code(404);
     }
 
     return h.response({
+      status: 'sukses',
       message: 'Berhasil mengambil data UMKM',
       data: {
         id: doc.id,
@@ -47,12 +138,51 @@ const getUmkmById = async (req, h) => {
   } catch (error) {
     console.error(error);
     return h.response({
+      status: 'error',
       message: 'Gagal mengambil data UMKM'
     }).code(500);
   }
 };
 
+
+const getManyUmkm = async (req, h) => {
+  try {
+    const ids = req.query.id;
+
+    if (!ids) {
+      return h.response({ message: "Parameter id diperlukan" }).code(400);
+    }
+
+    const idArray = Array.isArray(ids) ? ids : [ids];
+
+    const umkmPromises = idArray.map(id => db.collection("umkm").doc(id).get());
+    const umkmDocs = await Promise.all(umkmPromises);
+
+    const umkmData = umkmDocs
+      .filter(doc => doc.exists)
+      .map(doc => ({ id: doc.id, ...doc.data() }));
+
+    if (umkmData.length === 0) {
+      return h.response({ message: "UMKM tidak ditemukan" }).code(404);
+    }
+
+    return h.response({
+      message: "Berhasil mengambil data UMKM",
+      data: umkmData,
+    }).code(200);
+
+  } catch (error) {
+    console.error(error);
+    return h.response({
+      message: "Gagal mengambil data UMKM"
+    }).code(500);
+  }
+};
+
+
 module.exports = {
   getAllUmkm,
-  getUmkmById
+  getUmkmById,
+  addUmkm,
+  getManyUmkm
 };

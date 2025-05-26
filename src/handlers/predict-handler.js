@@ -44,16 +44,27 @@ const predict = async (request, h) => {
     }
 
     const doc = snapshot.docs[0];
-    const { deskripsi } = doc.data();
+    const { deskripsi, image_url, asal } = doc.data();
+
+    const umkmSnapshot = await db
+      .collection("umkm")
+      .where("paling_diminati", "array-contains", predictedLabel)
+      .get();
+
+    const relatedUmkmIds = umkmSnapshot.empty
+      ? []
+      : umkmSnapshot.docs.map((umkmDoc) => umkmDoc.id);
 
     const data = {
-      id: doc.id,
+      id_kue: doc.id,
       nama: predictedLabel,
       skor: score,
-      confidence,
       deskripsi,
+      asal,
+      image_url,
+      related_umkm_ids: relatedUmkmIds,
+      create_at: new Date().toISOString(),
     };
-    
 
     await db.collection("predictions").add({
       timestamp: new Date(),
@@ -91,10 +102,38 @@ const getTopPredictions = async (request, h) => {
       .limit(5)
       .get();
 
-    const topCakes = snapshot.docs.map((doc) => ({
-      nama: doc.id,
-      count: doc.data().count,
-    }));
+    const topCakesPromises = snapshot.docs.map(async (doc) => {
+      const nama = doc.id;
+      const count = doc.data().count;
+
+      const cakeSnapshot = await db
+        .collection("cakes")
+        .where("nama", "==", nama)
+        .get();
+
+      if (cakeSnapshot.empty) {
+        return {
+          id: null,
+          nama,
+          count,
+          asal: null,
+          image_url: null,
+        };
+      }
+
+      const cakeDoc = cakeSnapshot.docs[0];
+      const { asal, image_url } = cakeDoc.data();
+
+      return {
+        id: cakeDoc.id,
+        nama,
+        count,
+        asal,
+        image_url,
+      };
+    });
+
+    const topCakes = await Promise.all(topCakesPromises);
 
     return h.response({
       status: "sukses",
@@ -112,7 +151,7 @@ const getTopPredictions = async (request, h) => {
   }
 };
 
-module.exports = { 
+module.exports = {
   predict,
-   getTopPredictions
- };
+  getTopPredictions,
+};
