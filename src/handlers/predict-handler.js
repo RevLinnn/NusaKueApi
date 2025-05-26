@@ -46,15 +46,6 @@ const predict = async (request, h) => {
     const doc = snapshot.docs[0];
     const { deskripsi, image_url, asal } = doc.data();
 
-    const umkmSnapshot = await db
-      .collection("umkm")
-      .where("paling_diminati", "array-contains", predictedLabel)
-      .get();
-
-    const relatedUmkmIds = umkmSnapshot.empty
-      ? []
-      : umkmSnapshot.docs.map((umkmDoc) => umkmDoc.id);
-
     const data = {
       id_kue: doc.id,
       nama: predictedLabel,
@@ -62,7 +53,6 @@ const predict = async (request, h) => {
       deskripsi,
       asal,
       image_url,
-      related_umkm_ids: relatedUmkmIds,
       create_at: new Date().toISOString(),
     };
 

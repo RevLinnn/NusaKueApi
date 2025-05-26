@@ -1,4 +1,4 @@
-const { addUmkm,getAllUmkm, getUmkmById, getManyUmkm } = require('../handlers/umkm-handler.js');
+const { addUmkm, getAllUmkm, getUmkmByCakeId, getUmkmById } = require('../handlers/umkm-handler.js');
 
 const routes = [
   {
@@ -8,8 +8,8 @@ const routes = [
   },
   {
     method: 'GET',
-    path: '/umkms/{id}',
-    handler: getUmkmById
+    path: '/umkms-cakes/{id}',
+    handler: getUmkmByCakeId
   },
   {
     method: 'POST',
@@ -27,9 +27,9 @@ const routes = [
   },
   {
     method: 'GET',
-    path: '/umkms/many',
-    handler: getManyUmkm
-  } 
+    path: '/umkms/{id}',
+    handler: getUmkmById
+  }
 ];
 
 module.exports = routes;

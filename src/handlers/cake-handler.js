@@ -3,14 +3,8 @@ const uploadImageToFirebase = require("../utils/uploadImage.js");
 
 const addKue = async (req, h) => {
   try {
-    let {
-      nama,
-      asal,
-      bahan_pembuatan,
-      budaya,
-      cara_pembuatan,
-      deskripsi,
-    } = req.payload;
+    let { nama, asal, bahan_pembuatan, budaya, cara_pembuatan, deskripsi } =
+      req.payload;
 
     if (
       !nama ||
@@ -29,7 +23,8 @@ const addKue = async (req, h) => {
     } catch (err) {
       return h
         .response({
-          message: "Field asal dan bahan_pembuatan harus berupa array JSON yang valid.",
+          message:
+            "Field asal dan bahan_pembuatan harus berupa array JSON yang valid.",
         })
         .code(400);
     }
@@ -42,7 +37,10 @@ const addKue = async (req, h) => {
         .code(400);
     }
 
-    const existingKueSnapshot = await db.collection("cakes").where("nama", "==", nama).get();
+    const existingKueSnapshot = await db
+      .collection("cakes")
+      .where("nama", "==", nama)
+      .get();
 
     if (!existingKueSnapshot.empty) {
       return h

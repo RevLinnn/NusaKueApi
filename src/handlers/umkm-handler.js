@@ -1,6 +1,5 @@
-const {db, bucket} = require("../config/firebase.js");
+const { db, bucket } = require("../config/firebase.js");
 const uploadImageToFirebase = require("../utils/uploadImage.js");
-
 
 const addUmkm = async (req, h) => {
   try {
@@ -9,9 +8,7 @@ const addUmkm = async (req, h) => {
 
     // Validasi field wajib
     if (!nama || !alamat || !no_telp || !paling_diminati) {
-      return h
-        .response({ message: "Data tidak lengkap." })
-        .code(400);
+      return h.response({ message: "Data tidak lengkap." }).code(400);
     }
 
     try {
@@ -75,114 +72,146 @@ const addUmkm = async (req, h) => {
       .code(201);
   } catch (error) {
     console.error("Error addUmkm:", error);
-    return h
-      .response({ message: "Gagal menambahkan UMKM." })
-      .code(500);
+    return h.response({ message: "Gagal menambahkan UMKM." }).code(500);
   }
 };
 
 const getAllUmkm = async (req, h) => {
   try {
-    const snapshot = await db.collection('umkm').get();
-    const umkmList = snapshot.docs.map(doc => ({
+    const snapshot = await db.collection("umkm").get();
+    const umkmList = snapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
 
     if (umkmList.length === 0) {
-      return h.response({
-        message: 'Data UMKM tidak ditemukan'
-      }).code(404);
+      return h
+        .response({
+          message: "Data UMKM tidak ditemukan",
+        })
+        .code(404);
     }
 
-    return h.response({
-      message: 'Berhasil mengambil data UMKM',
-      data: umkmList
-    }).code(200);
+    return h
+      .response({
+        message: "Berhasil mengambil data UMKM",
+        data: umkmList,
+      })
+      .code(200);
   } catch (error) {
     console.error(error);
-    return h.response({
-      message: 'Gagal mengambil data UMKM'
-    }).code(500);
+    return h
+      .response({
+        message: "Gagal mengambil data UMKM",
+      })
+      .code(500);
   }
 };
 
 const getUmkmById = async (req, h) => {
   const { id } = req.params;
 
-  if (!id || typeof id !== 'string' || id.trim() === '') {
-    return h.response({
-      status: 'gagal',
-      message: 'ID UMKM tidak valid'
-    }).code(400);
+  if (!id || typeof id !== "string" || id.trim() === "") {
+    return h
+      .response({
+        status: "gagal",
+        message: "ID UMKM tidak valid",
+      })
+      .code(400);
   }
 
   try {
-    const doc = await db.collection('umkm').doc(id).get();
+    const doc = await db.collection("umkm").doc(id).get();
 
     if (!doc.exists) {
-      return h.response({
-        status: 'gagal',
-        message: 'UMKM tidak ditemukan'
-      }).code(404);
+      return h
+        .response({
+          status: "gagal",
+          message: "UMKM tidak ditemukan",
+        })
+        .code(404);
     }
 
-    return h.response({
-      status: 'sukses',
-      message: 'Berhasil mengambil data UMKM',
-      data: {
-        id: doc.id,
-        ...doc.data()
-      }
-    }).code(200);
+    return h
+      .response({
+        status: "sukses",
+        message: "Berhasil mengambil data UMKM",
+        data: {
+          id: doc.id,
+          ...doc.data(),
+        },
+      })
+      .code(200);
   } catch (error) {
     console.error(error);
-    return h.response({
-      status: 'error',
-      message: 'Gagal mengambil data UMKM'
-    }).code(500);
+    return h
+      .response({
+        status: "error",
+        message: "Gagal mengambil data UMKM",
+      })
+      .code(500);
   }
 };
 
+const getUmkmByCakeId = async (req, h) => {
+  const { id } = req.params;
 
-const getManyUmkm = async (req, h) => {
   try {
-    const ids = req.query.id;
+    const cakeDoc = await db.collection("cakes").doc(id).get();
 
-    if (!ids) {
-      return h.response({ message: "Parameter id diperlukan" }).code(400);
+    if (!cakeDoc.exists) {
+      return h
+        .response({
+          status: "gagal",
+          message: "Kue tidak ditemukan",
+        })
+        .code(404);
     }
 
-    const idArray = Array.isArray(ids) ? ids : [ids];
+    const cakeData = cakeDoc.data();
+    const namaKue = cakeData.nama;
 
-    const umkmPromises = idArray.map(id => db.collection("umkm").doc(id).get());
-    const umkmDocs = await Promise.all(umkmPromises);
+    const umkmSnapshot = await db
+      .collection("umkm")
+      .where("paling_diminati", "array-contains", namaKue)
+      .get();
 
-    const umkmData = umkmDocs
-      .filter(doc => doc.exists)
-      .map(doc => ({ id: doc.id, ...doc.data() }));
+    const umkmList = umkmSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-    if (umkmData.length === 0) {
-      return h.response({ message: "UMKM tidak ditemukan" }).code(404);
+    if (umkmList.length === 0) {
+      return h
+        .response({
+          status: "sukses",
+          message: "Belum ada UMKM yang menyediakan kue ini",
+          data: [],
+        })
+        .code(200);
     }
 
-    return h.response({
-      message: "Berhasil mengambil data UMKM",
-      data: umkmData,
-    }).code(200);
-
+    return h
+      .response({
+        status: "sukses",
+        message: "Berhasil mengambil data UMKM berdasarkan kue",
+        data: umkmList,
+      })
+      .code(200);
   } catch (error) {
     console.error(error);
-    return h.response({
-      message: "Gagal mengambil data UMKM"
-    }).code(500);
+    return h
+      .response({
+        status: "error",
+        message: "Gagal mengambil data UMKM",
+      })
+      .code(500);
   }
 };
-
 
 module.exports = {
   getAllUmkm,
-  getUmkmById,
+  getUmkmByCakeId,
   addUmkm,
-  getManyUmkm
+  getUmkmById,
 };
