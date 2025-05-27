@@ -3,28 +3,25 @@ const uploadImageToFirebase = require("../utils/uploadImage.js");
 
 const addKue = async (req, h) => {
   try {
-    let { nama, asal, bahan_pembuatan, budaya, cara_pembuatan, deskripsi } =
-      req.payload;
+    let { nama, asal, bahan_pembuatan, budaya, cara_pembuatan, deskripsi } = req.payload;
 
-    if (
-      !nama ||
-      !asal ||
-      !bahan_pembuatan ||
-      !budaya ||
-      !cara_pembuatan ||
-      !deskripsi
-    ) {
-      return h.response({ message: "Data tidak lengkap." }).code(400);
+    if (!nama || !asal || !bahan_pembuatan || !budaya || !cara_pembuatan || !deskripsi) {
+      return h
+        .response({
+          status: "fail",
+          message: "Data tidak lengkap. Semua field harus diisi.",
+        })
+        .code(400);
     }
 
     try {
       asal = JSON.parse(asal);
       bahan_pembuatan = JSON.parse(bahan_pembuatan);
-    } catch (err) {
+    } catch {
       return h
         .response({
-          message:
-            "Field asal dan bahan_pembuatan harus berupa array JSON yang valid.",
+          status: "fail",
+          message: "Field 'asal' dan 'bahan_pembuatan' harus berupa JSON array yang valid.",
         })
         .code(400);
     }
@@ -32,7 +29,8 @@ const addKue = async (req, h) => {
     if (!Array.isArray(asal) || !Array.isArray(bahan_pembuatan)) {
       return h
         .response({
-          message: "Field asal dan bahan_pembuatan harus berupa array.",
+          status: "fail",
+          message: "Field 'asal' dan 'bahan_pembuatan' harus berupa array.",
         })
         .code(400);
     }
@@ -45,7 +43,8 @@ const addKue = async (req, h) => {
     if (!existingKueSnapshot.empty) {
       return h
         .response({
-          message: `Kue dengan nama '${nama}' sudah ada.`,
+          status: "fail",
+          message: `Kue dengan nama '${nama}' sudah terdaftar.`,
         })
         .code(409);
     }
@@ -72,13 +71,20 @@ const addKue = async (req, h) => {
 
     return h
       .response({
+        status: "success",
         message: "Kue berhasil ditambahkan.",
         data: newKue,
       })
       .code(201);
   } catch (error) {
     console.error("Error addKue:", error);
-    return h.response({ message: "Gagal menambahkan kue." }).code(500);
+    return h
+      .response({
+        status: "error",
+        message: "Gagal menambahkan kue karena kesalahan server.",
+        detail: error.message,
+      })
+      .code(500);
   }
 };
 
@@ -91,18 +97,30 @@ const getAllKue = async (req, h) => {
     }));
 
     if (cakeList.length === 0) {
-      return h.response({ message: "Tidak ada kue yang ditemukan." }).code(404);
+      return h
+        .response({
+          status: "fail",
+          message: "Tidak ada data kue yang ditemukan.",
+        })
+        .code(404);
     }
 
     return h
       .response({
+        status: "success",
         message: "Berhasil mengambil data kue.",
         data: cakeList,
       })
       .code(200);
   } catch (error) {
     console.error(error);
-    return h.response({ message: "Gagal mengambil data kue." }).code(500);
+    return h
+      .response({
+        status: "error",
+        message: "Gagal mengambil data kue karena kesalahan server.",
+        detail: error.message,
+      })
+      .code(500);
   }
 };
 
@@ -113,11 +131,17 @@ const getCakeById = async (req, h) => {
     const cakeDoc = await db.collection("cakes").doc(id).get();
 
     if (!cakeDoc.exists) {
-      return h.response({ message: "Kue tidak ditemukan." }).code(404);
+      return h
+        .response({
+          status: "fail",
+          message: "Kue tidak ditemukan.",
+        })
+        .code(404);
     }
 
     return h
       .response({
+        status: "success",
         message: "Berhasil mengambil data kue.",
         data: {
           id: cakeDoc.id,
@@ -127,12 +151,18 @@ const getCakeById = async (req, h) => {
       .code(200);
   } catch (error) {
     console.error(error);
-    return h.response({ message: "Gagal mengambil data kue." }).code(500);
+    return h
+      .response({
+        status: "error",
+        message: "Gagal mengambil data kue karena kesalahan server.",
+        detail: error.message,
+      })
+      .code(500);
   }
 };
 
 module.exports = {
+  addKue,
   getAllKue,
   getCakeById,
-  addKue,
 };

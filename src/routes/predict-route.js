@@ -7,7 +7,7 @@ const routes = [
     path: "/predict",
     options: {
       payload: {
-        maxBytes: 10 * 1024 * 1024,
+        maxBytes: 5 * 1024 * 1024,
         parse: true,
         allow: "multipart/form-data",
         output: "data",

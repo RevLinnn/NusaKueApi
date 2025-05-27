@@ -8,8 +8,8 @@ const predict = async (request, h) => {
   if (!image || !(image instanceof Buffer)) {
     return h
       .response({
-        status: "gagal",
-        message: "File gambar tidak diunggah atau format gambar tidak valid",
+        status: "fail",
+        message: "File gambar tidak diunggah atau format gambar tidak valid.",
       })
       .code(400);
   }
@@ -20,8 +20,8 @@ const predict = async (request, h) => {
     if (result.error) {
       return h
         .response({
-          status: "gagal",
-          message: result.error || "Terjadi kesalahan saat prediksi",
+          status: "fail",
+          message: result.error || "Terjadi kesalahan saat melakukan prediksi.",
         })
         .code(400);
     }
@@ -37,8 +37,8 @@ const predict = async (request, h) => {
     if (snapshot.empty) {
       return h
         .response({
-          status: "gagal",
-          message: "Kue tidak ditemukan",
+          status: "fail",
+          message: "Kue tidak ditemukan.",
         })
         .code(404);
     }
@@ -53,7 +53,7 @@ const predict = async (request, h) => {
       deskripsi,
       asal,
       image_url,
-      create_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
     };
 
     await db.collection("predictions").add({
@@ -68,17 +68,18 @@ const predict = async (request, h) => {
 
     return h
       .response({
-        status: "sukses",
+        status: "success",
+        message: "Prediksi berhasil dilakukan.",
         data,
       })
       .code(200);
-  } catch (err) {
-    console.error("Prediction error:", err);
+  } catch (error) {
+    console.error("Prediction error:", error);
     return h
       .response({
         status: "error",
-        message: "Terjadi kesalahan server saat proses prediksi",
-        detail: err.message,
+        message: "Terjadi kesalahan server saat proses prediksi.",
+        detail: error.message,
       })
       .code(500);
   }
@@ -125,17 +126,20 @@ const getTopPredictions = async (request, h) => {
 
     const topCakes = await Promise.all(topCakesPromises);
 
-    return h.response({
-      status: "sukses",
-      data: topCakes,
-    });
-  } catch (err) {
-    console.error("Error fetching top predictions:", err);
+    return h
+      .response({
+        status: "success",
+        message: "Data prediksi teratas berhasil diambil.",
+        data: topCakes,
+      })
+      .code(200);
+  } catch (error) {
+    console.error("Error fetching top predictions:", error);
     return h
       .response({
         status: "error",
-        message: "Gagal mengambil data prediksi teratas",
-        detail: err.message,
+        message: "Gagal mengambil data prediksi teratas.",
+        detail: error.message,
       })
       .code(500);
   }

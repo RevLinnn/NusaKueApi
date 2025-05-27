@@ -19,7 +19,15 @@ const init = async () => {
       }
     }
   });
-
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler: (request, h) => {
+      return h.response({
+        message: 'Hello World!',
+      }).code(200);
+    }
+  });
   server.route(predictRoutes);
   server.route(cakeRoutes);
   server.route(umkmRoutes);

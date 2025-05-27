@@ -20,7 +20,7 @@ const routes = [
         output: 'stream',
         parse: true,
         multipart: true,
-        maxBytes: 10485760,
+        maxBytes: 5 * 1024 * 1024,
         allow: 'multipart/form-data'
       }
     }

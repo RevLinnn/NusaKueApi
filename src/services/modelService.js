@@ -9,10 +9,10 @@ const loadModel = async () => {
   if (!model) {
     try {
       model = await tf.loadLayersModel(MODEL_PATH);
-      console.log("Model loaded successfully");
+      console.log("Model berhasil dimuat");
     } catch (error) {
-      console.error("Error loading model:", error);
-      throw new Error("Failed to load model");
+      console.error("Gagal memuat model:", error);
+      throw new Error("Gagal memuat model");
     }
   }
   return model;
@@ -29,12 +29,13 @@ const preprocessImage = async (buffer) => {
     const imageTensor = tf.tensor3d(data, [info.height, info.width, info.channels], "int32");
     const normalized = imageTensor.div(tf.scalar(255));
     const batched = normalized.expandDims(0);
+
     imageTensor.dispose();
 
     return batched;
   } catch (error) {
-    console.error("Error during image preprocessing:", error);
-    throw new Error("Unsupported or corrupt image");
+    console.error("Gagal memproses gambar:", error);
+    throw new Error("Gambar tidak didukung atau rusak");
   }
 };
 
@@ -57,16 +58,16 @@ const predictImageClass = async (imageBuffer) => {
         predicted: LABEL[maxIdx],
         confidence,
       };
-    } else {
-      return {
-        predicted: "Unknown",
-        confidence,
-        message: `Confidence (${(confidence * 100).toFixed(2)}%) is below the threshold of ${(CONFIDENCE_THRESHOLD * 100).toFixed(0)}%.`,
-      };
     }
+
+    return {
+      predicted: "Unknown",
+      confidence,
+      message: `Confidence (${(confidence * 100).toFixed(2)}%) di bawah threshold ${(CONFIDENCE_THRESHOLD * 100).toFixed(0)}%.`,
+    };
   } catch (error) {
-    console.error("Prediction failed:", error);
-    throw new Error("Prediction failed");
+    console.error("Prediksi gagal:", error);
+    throw new Error("Prediksi gagal");
   }
 };
 
