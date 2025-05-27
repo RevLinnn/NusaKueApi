@@ -101,6 +101,7 @@ const getTopPredictions = async (request, h) => {
         .collection("cakes")
         .where("nama", "==", nama)
         .get();
+        
 
       if (cakeSnapshot.empty) {
         return {
@@ -113,14 +114,12 @@ const getTopPredictions = async (request, h) => {
       }
 
       const cakeDoc = cakeSnapshot.docs[0];
-      const { asal, image_url } = cakeDoc.data();
+      const dataCake = cakeDoc.data();
 
       return {
         id: cakeDoc.id,
-        nama,
         count,
-        asal,
-        image_url,
+        ...dataCake,
       };
     });
 
