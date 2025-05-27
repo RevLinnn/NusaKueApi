@@ -161,8 +161,89 @@ const getCakeById = async (req, h) => {
   }
 };
 
+const deleteCakeById = async (req, h) => {
+  try {
+    const { id } = req.params;
+
+    const cakeDoc = await db.collection("cakes").doc(id).get();
+
+    if (!cakeDoc.exists) {
+      return h
+        .response({
+          status: "fail",
+          message: "Kue tidak ditemukan.",
+        })
+        .code(404);
+    }
+
+    await db.collection("cakes").doc(id).delete();
+
+    return h
+      .response({
+        status: "success",
+        message: "Kue berhasil dihapus.",
+      })
+      .code(200);
+  } catch (error) {
+    console.error(error);
+    return h
+      .response({
+        status: "error",
+        message: "Gagal menghapus kue karena kesalahan server.",
+        detail: error.message,
+      })
+      .code(500);
+  }
+};
+
+const updateCakeById = async (req, h) => {
+  try {
+    const { id } = req.params;
+    const { nama, asal, bahan_pembuatan, budaya, cara_pembuatan, deskripsi } =
+      req.payload;
+
+    const cakeDoc = await db.collection("cakes").doc(id).get();
+
+    if (!cakeDoc.exists) {
+      return h
+        .response({
+          status: "fail",
+          message: "Kue tidak ditemukan.",
+        })
+        .code(404);
+    }
+
+    await db.collection("cakes").doc(id).update({
+      nama,
+      asal,
+      bahan_pembuatan,
+      budaya,
+      cara_pembuatan,
+      deskripsi,
+    });
+
+    return h
+      .response({
+        status: "success",
+        message: "Kue berhasil diperbarui.",
+      })
+      .code(200);
+  } catch (error) {
+    console.error(error);
+    return h
+      .response({
+        status: "error",
+        message: "Gagal memperbarui kue karena kesalahan server.",
+        detail: error.message,
+      })
+      .code(500);
+  }
+};
+
 module.exports = {
   addKue,
   getAllKue,
   getCakeById,
+  deleteCakeById,
+  updateCakeById
 };

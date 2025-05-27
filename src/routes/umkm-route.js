@@ -1,15 +1,10 @@
-const { addUmkm, getAllUmkm, getUmkmByCakeId, getUmkmById } = require('../handlers/umkm-handler.js');
+const { addUmkm, getAllUmkm, getUmkmById } = require('../handlers/umkm-handler.js');
 
 const routes = [
   {
     method: 'GET',
     path: '/umkms',
     handler: getAllUmkm
-  },
-  {
-    method: 'GET',
-    path: '/umkms-cakes/{id}',
-    handler: getUmkmByCakeId
   },
   {
     method: 'POST',

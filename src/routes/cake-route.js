@@ -1,4 +1,4 @@
-const { addKue, getAllKue, getCakeById } = require('../handlers/cake-handler.js');
+const { addKue, getAllKue, getCakeById, deleteCakeById, updateCakeById } = require('../handlers/cake-handler.js');
 
 const routes = [
   {
@@ -24,6 +24,16 @@ const routes = [
         allow: 'multipart/form-data'
       }
     }
+  },
+  {
+    method: 'DELETE',
+    path: '/cakes/{id}',
+    handler: deleteCakeById
+  },
+  {
+    method: 'PUT',
+    path: '/cakes/{id}',
+    handler: updateCakeById
   }
 ];
 

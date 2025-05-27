@@ -2,6 +2,7 @@ const Hapi = require('@hapi/hapi');
 const predictRoutes = require('../routes/predict-route.js');
 const cakeRoutes = require('../routes/cake-route.js');
 const umkmRoutes = require('../routes/umkm-route.js');
+const  recommendationRoutes = require('../routes/recommendation-route.js');
 
 const init = async () => {
   const server = Hapi.server({
@@ -31,6 +32,7 @@ const init = async () => {
   server.route(predictRoutes);
   server.route(cakeRoutes);
   server.route(umkmRoutes);
+  server.route(recommendationRoutes);
 
   await server.start();
   console.log('Server running on %s', server.info.uri);
