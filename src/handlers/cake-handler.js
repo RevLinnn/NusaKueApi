@@ -1,5 +1,6 @@
 const { db, bucket } = require("../config/firebase.js");
 const uploadImageToFirebase = require("../utils/uploadImage.js");
+const deleteImage = require("../utils/deleteImage.js");
 
 const addKue = async (req, h) => {
   try {
@@ -166,41 +167,68 @@ const deleteCakeById = async (req, h) => {
     const { id } = req.params;
 
     const cakeDoc = await db.collection("cakes").doc(id).get();
-
     if (!cakeDoc.exists) {
-      return h
-        .response({
-          status: "fail",
-          message: "Kue tidak ditemukan.",
-        })
-        .code(404);
+      return h.response({
+        status: "fail",
+        message: "Kue tidak ditemukan.",
+      }).code(404);
+    }
+
+    const imageUrl = cakeDoc.data().image_url;
+    if (imageUrl) {
+      await deleteImage(imageUrl);
     }
 
     await db.collection("cakes").doc(id).delete();
 
-    return h
-      .response({
-        status: "success",
-        message: "Kue berhasil dihapus.",
-      })
-      .code(200);
+    return h.response({
+      status: "success",
+      message: "Kue berhasil dihapus.",
+    }).code(200);
   } catch (error) {
     console.error(error);
-    return h
-      .response({
-        status: "error",
-        message: "Gagal menghapus kue karena kesalahan server.",
-        detail: error.message,
-      })
-      .code(500);
+    return h.response({
+      status: "error",
+      message: "Gagal menghapus kue karena kesalahan server.",
+      detail: error.message,
+    }).code(500);
   }
 };
 
 const updateCakeById = async (req, h) => {
   try {
     const { id } = req.params;
-    const { nama, asal, bahan_pembuatan, budaya, cara_pembuatan, deskripsi } =
-      req.payload;
+    let { nama, asal, bahan_pembuatan, budaya, cara_pembuatan, deskripsi } = req.payload;
+
+    if (!nama || !asal || !bahan_pembuatan || !budaya || !cara_pembuatan || !deskripsi) {
+      return h
+        .response({
+          status: "fail",
+          message: "Data tidak lengkap. Semua field harus diisi.",
+        })
+        .code(400);
+    }
+
+    try {
+      asal = JSON.parse(asal);
+      bahan_pembuatan = JSON.parse(bahan_pembuatan);
+    } catch {
+      return h
+        .response({
+          status: "fail",
+          message: "Field 'asal' dan 'bahan_pembuatan' harus berupa JSON array yang valid.",
+        })
+        .code(400);
+    }
+
+    if (!Array.isArray(asal) || !Array.isArray(bahan_pembuatan)) {
+      return h
+        .response({
+          status: "fail",
+          message: "Field 'asal' dan 'bahan_pembuatan' harus berupa array.",
+        })
+        .code(400);
+    }
 
     const cakeDoc = await db.collection("cakes").doc(id).get();
 
@@ -220,6 +248,7 @@ const updateCakeById = async (req, h) => {
       budaya,
       cara_pembuatan,
       deskripsi,
+      updated_at: new Date().toISOString(),
     });
 
     return h
@@ -239,6 +268,7 @@ const updateCakeById = async (req, h) => {
       .code(500);
   }
 };
+
 
 module.exports = {
   addKue,
