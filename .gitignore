@@ -1,6 +1,4 @@
 # .gitignore
 node_modules/
-src/model/
 src/config/firebase-key.json
-.env
 importUmkm.js
