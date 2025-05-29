@@ -1,7 +1,7 @@
 const admin = require('firebase-admin');
 const fs = require('fs');
 
-const serviceAccountPath = '/secrets/firebasekey.json';
+const serviceAccountPath = '/secrets/firebasekey';
 
 let serviceAccount;
 try {
